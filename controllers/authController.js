@@ -46,7 +46,7 @@ exports.login = async (req, res, next) => {
                 role: student.role
             },
             process.env.JWT_SECRET,
-            { expiresIn: '1h'}
+            { expiresIn: '1d'}
             )
 
         res.status(200).json({ message: 'Login successful', token });

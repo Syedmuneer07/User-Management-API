@@ -8,10 +8,36 @@ exports.getAllStudents = async (req, res, next) => {
         .json({ message: "Forbidden Access ! You dont have admin access" });
     }
 
-    const students = await Student.find({ role: "student" }).select(
-      "-password",
-    ); // select all fields except password
-    res.status(200).json(students);
+    // const students = await Student.find({ role: "student", age: { $gte: 30 } }).select(
+    //   "-password",
+    // ); // select all fields except password and age greater than or equal to 
+    
+
+
+    // pagination
+    const page=parseInt(req.query.page) || 1; // get page number from query params or default to 1
+    const limit=parseInt(req.query.limit) || 10; // get limit from query params or default to 10
+
+    const skipValue=(page-1)*limit // skip value for pagination 
+
+    const students = await Student.find({ role: "student" }).sort({ age: 1 }).skip(skipValue).limit(limit);// select all fields except password and age greater than or equal to 30
+
+    //aggregation 
+    const result= await Student.aggregate([
+      {
+        $group:{
+          _id:"$course",
+          averarge:{
+            $avg:"$age" // average age by course.can also doo  $sum $avg $min $max $diff
+
+          }
+        }
+      }
+    ]);
+
+    res.status(200).json({students,
+      averargeAgeByCourse: result
+    });
   } catch (err) {
     //res.status(500).json({ error: err.message });
     next(err);
